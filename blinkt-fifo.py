@@ -64,10 +64,7 @@ def checkNight():
                 brightness[x] = blinkt.get_pixel(x)[3]
             blinkt.set_brightness(0)
             sleep(3600)
-        # when time is 7am, set isNight to False, put brightness to default and sleep for 1 hour
-        # when using custom brightness, it will stay as default until the script sets it again
-        # I like to think of this as more of a feature than a bug since... (some gibberish about
-        # how your eyes need to adjust in the morning blah blah)...
+        # when time is 7am, set isNight to False, restore brightness to default and sleep for 1 hour
         elif hour == 7:
             isNight = False
             for x in range(blinkt.NUM_PIXELS):
@@ -86,4 +83,3 @@ rainbow()
 while True:
     inotify.read()
     setLeds()
-
