@@ -3,10 +3,12 @@ from inotify_simple import INotify, flags
 from colorsys import hsv_to_rgb
 from datetime import datetime
 from time import time, sleep
+from os import stat
 import threading
 import blinkt
 
 isNight = False
+lastopen = 0
 brightness = [0.0] * blinkt.NUM_PIXELS
 
 inotify = INotify()
@@ -28,7 +30,11 @@ def rainbow():
     blinkt.clear()
 
 def setLeds():
-    global isNight
+    global isNight, lastopen
+    timeSinceOpen = stat('/etc/ledctrl').st_mtime 
+    if timeSinceOpen == lastopen:
+        return
+    lastopen = timeSinceOpen
     try:
         # uses FIFO-based logic - the file is an instruction queue
         with open("/etc/ledctrl", "r+") as f:
@@ -57,7 +63,7 @@ def checkNight():
         hour = datetime.now().hour
         # when time is 10pm, set isNight to True, lower brightness and sleep for 1 hour
         # this makes sure that this code only runs once
-        if hour == 22:
+        if (hour >= 22 or hour < 7) and not isNight:
             isNight = True
             # save brightness in list
             for x in range(blinkt.NUM_PIXELS):
@@ -65,7 +71,7 @@ def checkNight():
             blinkt.set_brightness(0)
             sleep(3600)
         # when time is 7am, set isNight to False, restore brightness to default and sleep for 1 hour
-        elif hour == 7:
+        elif (hour >= 7 and hour < 22) and isNight:
             isNight = False
             for x in range(blinkt.NUM_PIXELS):
                 curPixel = blinkt.get_pixel(x)
