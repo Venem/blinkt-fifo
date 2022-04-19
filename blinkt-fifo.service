@@ -1,0 +1,15 @@
+[Unit]
+Description=LED Control Daemon
+Documentation=
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/blinkt-fifo.py
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/usr/bin/blinkt-fifo.py --stop
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=blinkt-fifo.service

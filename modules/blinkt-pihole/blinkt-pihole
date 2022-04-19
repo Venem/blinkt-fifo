@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# because of the nature of this script and how it has to run constantly, we can't
+# initiate it from python
+
+isgreen=0
+fifo="/etc/blinkt.fifo"
+tail -f /var/log/pihole.log | while read INPUT; do
+	[ "$isgreen" = "1" ] && echo $INPUT | grep "blocked" >/dev/null 2>&1 && \
+		echo "0 255 0 0 0.05" >> $fifo && \
+		isgreen=0
+	[ "$isgreen" = "0" ] && echo $INPUT | grep "reply" >/dev/null 2>&1 && \
+		echo "0 0 255 0 0.05" >> $fifo && \
+		isgreen=1
+done

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# $1 should be the light this script controls
+# $2 should be location of fifo
+temp="$(sensors | grep 'temp1' | sed -r 's/\..+// ; s/temp1.+\+//')"
+
+if [ "$temp" -lt "30" ]; then
+	echo "$1 0 221 255 0.1" >> $2
+elif [ "$temp" -lt "40" ]; then
+	echo "$1 0 170 204 0.1" >> $2
+elif [ "$temp" -lt "50" ]; then
+	echo "$1 221 204 0 0.1" >> $2
+elif [ "$temp" -lt "60" ]; then
+	echo "$1 255 136 0 0.1" >> $2
+else
+	echo "$1 255 17 17 0.1" >> $2
+fi

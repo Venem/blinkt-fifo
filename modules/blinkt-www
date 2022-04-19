@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# $1 should be the light this script controls
+# $2 should be location of fifo, $3 the website to check
+code=$(curl -Is "$3" | head -n 1 | sed -E 's/HTTPS?\/[0-9](\.[0-9])? //g')
+
+if [ "$code" -eq "200" ]; then
+	echo "$1 0 200 0 0.1" > $2
+elif [ "$code" -eq "404" ]; then
+	echo "$1 200 0 0 0.1" > $2
+elif [ "$code" -eq "403" ]; then
+	echo "$1 200 200 0 0.1" > $2
+else
+	for i in {1..10}; do
+		echo "$1 200 0 0 0.1" > $2
+		echo "$1 200 200 0 0.1" > $2
+	done
+	echo "$1 0 0 0 0" > $2
+fi

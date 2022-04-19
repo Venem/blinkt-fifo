@@ -1,0 +1,14 @@
+[Unit]
+Description=LED Control Daemon Interface for PiHole
+Documentation=
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/blinkt-pihole
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=blinkt-pihole.service

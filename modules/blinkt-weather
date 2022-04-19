@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# $1 should be the light this script controls
+# $2 should be location of fifo
+# unfortunately, this script has no connectivity checking so it will just hang for a while when no internet is available
+temp="$(curl -s wttr.in | head -4 | tail -1 | sed -E 's/.*\(//g;s/\).*//g' | grep -o "m\\([-+]\\)*[0-9]\\+" | sed 's/+//g;s/m//g')"
+
+if [ "$temp" -lt "-5" ]; then
+	echo "$1 170 240 255 0.05" >> $2
+elif [ "$temp" -lt "0" ]; then
+	echo "$1 100 229 255 0.05" >> $2
+elif [ "$temp" -lt "5" ]; then
+	echo "$1 0 212 255 0.05" >> $2
+elif [ "$temp" -lt "10" ]; then
+	echo "$1 0 170 204 0.05" >> $2
+elif [ "$temp" -lt "15" ]; then
+	echo "$1 221 204 0 0.05" >> $2
+elif [ "$temp" -lt "20" ]; then
+	echo "$1 255 136 0 0.05" >> $2
+else
+	echo "$1 255 17 17 0.05" >> $2
+fi
