@@ -1,19 +1,28 @@
 #!/bin/sh
 
-# $1 should be the light this script controls
-# $2 should be location of fifo, $3 the website to check
-code=$(curl -Is "$3" | head -n 1 | sed -E 's/HTTPS?\/[0-9](\.[0-9])? //g')
+# $1 is the website to check
+# $2 should be the light this script controls
+# $3 should be location of fifo
+code=$(curl -m 1 -Is "$1" | head -n 1 | sed -E 's/HTTPS?\/[0-9](\.[0-9])? //g')
 
-if [ "$code" -eq "200" ]; then
-	echo "$1 0 200 0 0.1" > $2
-elif [ "$code" -eq "404" ]; then
-	echo "$1 200 0 0 0.1" > $2
-elif [ "$code" -eq "403" ]; then
-	echo "$1 200 200 0 0.1" > $2
+if [ "$code" = "200" ]; then
+	echo "$2 0 200 0 0.1" > $3
+elif [ "$code" = "404" ]; then
+	echo "$2 200 0 0 0.1" > $3
+elif [ "$code" = "403" ]; then
+	echo "$2 200 200 0 0.1" > $3
 else
-	for i in {1..10}; do
-		echo "$1 200 0 0 0.1" > $2
-		echo "$1 200 200 0 0.1" > $2
+	i=0
+	while [ $i -lt 10 ]; do
+		echo "$2 200 0 0 1" > $3
+		sleep 0.2
+		echo "$2 0 0 0 1" > $3
+		sleep 0.4
+		echo "$2 200 200 0 1" > $3
+		sleep 0.2
+		echo "$2 0 0 0 1" > $3
+		sleep 0.4
+		i=$((i+1))
 	done
-	echo "$1 0 0 0 0" > $2
+	echo "$2 0 0 0 0" > $3
 fi

@@ -4,7 +4,7 @@ from colorsys import hsv_to_rgb
 from datetime import datetime
 from time import time, sleep
 from os import stat, path, mknod, chmod
-from subprocess import Popen
+from subprocess import Popen, DEVNULL
 from sys import argv
 import threading
 import blinkt
@@ -59,7 +59,7 @@ brightness = [0.0] * blinkt.NUM_PIXELS
 # for "reserving" certain lights for more complicated modules like blinkt-pihole
 # hopefully, it will detect that the light is in use by blinkt-pihole since I aim to use
 # the same file for configuration - this will also make it easier to add custom modules
-modules = ["", "/usr/bin/blinkt-weather", "", "", "", "", "/usr/bin/blinkt-www", "/usr/bin/blinkt-cpu"]
+modules = ["", "/usr/bin/blinkt-weather", "", "", "", "", "/usr/bin/blinkt-www https://manoila.co.uk", "/usr/bin/blinkt-cpu"]
 
 # defaultBrightness is used when an invalid brightness is passed
 defaultBrightness = 0.5
@@ -127,14 +127,13 @@ def setLeds():
             # if it is day, set colours accordingly
             if not isNight:
                 blinkt.set_pixel(int(colours[0]), int(colours[1]), int(colours[2]), int(colours[3]), float(colours[4]))
-                # end of function
             # if it is night, set colours but with 0 brightness so that they can be shown
             # later and store the brightness in a list
             else:
                 blinkt.set_pixel(int(colours[0]), int(colours[1]), int(colours[2]), int(colours[3]), 0)
                 brightness[int(colours[0])] = float(colours[4])
-                # end of function
             blinkt.show()
+            # end of function
     # catching exception is more efficient than validating each colour's data type
     except ValueError:
         return
@@ -151,6 +150,7 @@ def checkNight():
             for x in range(blinkt.NUM_PIXELS):
                 brightness[x] = blinkt.get_pixel(x)[3]
             blinkt.set_brightness(0)
+            blinkt.show()
             # wait for an hour to stop if statement from triggering again
             sleep(3600)
         # when time approaches day, set isNight to False, restore brightness to the values in the list
@@ -164,15 +164,10 @@ def checkNight():
                 # no need for a fallback default brightness
                 blinkt.set_pixel(x, r, g, b, brightness[x])
             # wait for an hour to stop if statement from triggering again
+            blinkt.show()
             sleep(3600)
         sleep(nightCheckInterval*60)
 
-
-# start modules and pass location in list through (this is the light that it will manage)
-# <module> <light> <fifo>
-for modIndex in range(len(modules)):
-    if not modules[modIndex] == "":
-        Popen([modules[modIndex], str(modIndex), fifo])
 
 # start timing script on its own thread
 if not alwaysOn:
@@ -186,6 +181,13 @@ if not (len(argv) > 1 and argv[1] == "--no-rainbow"):
 # clean out any that may have accumulated while script was not running
 for i in range(25):
     setLeds()
+
+# start modules and pass location in list through (this is the light that it will manage)
+# <module> <light> <fifo>
+for modIndex in range(len(modules)):
+    if not modules[modIndex] == "":
+#        Popen([modules[modIndex], str(modIndex), fifo], stdout=DEVNULL, stderr=DEVNULL)
+        Popen(modules[modIndex].split() + [str(modIndex), fifo])
 
 while True:
     # inotify is overengineered for this job. It detects file changes even when
