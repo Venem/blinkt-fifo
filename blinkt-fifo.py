@@ -4,7 +4,7 @@ from colorsys import hsv_to_rgb
 from datetime import datetime
 from time import time, sleep
 from os import stat, path, mknod, chmod
-from subprocess import Popen, DEVNULL
+from subprocess import Popen
 from sys import argv
 import threading
 import blinkt
@@ -59,7 +59,7 @@ brightness = [0.0] * blinkt.NUM_PIXELS
 # for "reserving" certain lights for more complicated modules like blinkt-pihole
 # hopefully, it will detect that the light is in use by blinkt-pihole since I aim to use
 # the same file for configuration - this will also make it easier to add custom modules
-modules = ["", "/usr/bin/blinkt-weather", "", "", "", "", "/usr/bin/blinkt-www https://manoila.co.uk", "/usr/bin/blinkt-cpu"]
+modules = ["", "/usr/bin/blinkt-weather", "", "", "", "", "/usr/bin/blinkt-www https://google.com", "/usr/bin/blinkt-cpu"]
 
 # defaultBrightness is used when an invalid brightness is passed
 defaultBrightness = 0.5
@@ -107,7 +107,7 @@ def rainbow():
 def setLeds():
     global isNight, lastopen
     # stupid fix for inotify detecting file changes when not supposed to (see where function is called)
-    timeSinceOpen = stat(fifo).st_mtime 
+    timeSinceOpen = stat(fifo).st_mtime
     if timeSinceOpen == lastopen:
         return
     lastopen = timeSinceOpen
@@ -186,7 +186,6 @@ for i in range(25):
 # <module> <light> <fifo>
 for modIndex in range(len(modules)):
     if not modules[modIndex] == "":
-#        Popen([modules[modIndex], str(modIndex), fifo], stdout=DEVNULL, stderr=DEVNULL)
         Popen(modules[modIndex].split() + [str(modIndex), fifo])
 
 while True:
